@@ -35,7 +35,7 @@ class Bot : public QObject
 {
     Q_OBJECT
 public:
-    /**
+    /**mes
      * Bot constructor
      * @param token
      * @param updates - enable automatic update polling
@@ -43,7 +43,7 @@ public:
      * @param pollingTimeout - timeout in sec
      * @param parent
      */
-    explicit Bot(QString token, bool updates = false, quint32 updateInterval = 1000, quint32 pollingTimeout = 0, QObject *parent = 0);
+    explicit Bot(const QString &token, bool updates = false, quint32 updateInterval = 1000, quint32 pollingTimeout = 0, QObject *parent = 0);
     ~Bot();
 
     enum ChatAction { Typing, UploadingPhoto, RecordingVideo, UploadingVideo, RecordingAudio, UploadingAudio, UploadingDocument, FindingLocation };
@@ -66,7 +66,7 @@ public:
      * @return success
      * @see https://core.telegram.org/bots/api#sendmessage
      */
-    bool sendMessage(QVariant chatId, QString text, bool markdown = false, bool disableWebPagePreview = false, qint32 replyToMessageId = -1, const GenericReply &replyMarkup = GenericReply());
+    bool sendMessage(QVariant chatId, const QString &text, bool markdown = false, bool disableWebPagePreview = false, qint32 replyToMessageId = -1, const GenericReply &replyMarkup = GenericReply());
 
     /**
      * Forward messages of any kind.
@@ -272,7 +272,7 @@ public:
      * @return success
      * @see https://core.telegram.org/bots/api#setwebhook
      */
-    bool setWebhook(QString url, QFile *certificate);
+    bool setWebhook(const QString &url, QFile *certificate);
 
     /**
      * Use this method to get basic info about a file and prepare it for downloading.
@@ -280,13 +280,13 @@ public:
      * @return File object
      * @see https://core.telegram.org/bots/api#getfile
      */
-    File getFile(QString fileId);
+    File getFile(const QString &fileId);
 
 private:
     Networking *m_net;
 
     bool _sendPayload(QVariant chatId, QFile *filePayload, ParameterList params, qint32 replyToMessageId, const GenericReply &replyMarkup, QString payloadField, QString endpoint);
-    bool _sendPayload(QVariant chatId, QString textPayload, ParameterList params, qint32 replyToMessageId, const GenericReply &replyMarkup, QString payloadField, QString endpoint);
+    bool _sendPayload(const QVariant &chatId, const QString &textPayload, ParameterList &params, qint32 replyToMessageId, const GenericReply &replyMarkup, const QString &payloadField, const QString &endpoint);
 
     QJsonObject jsonObjectFromByteArray(QByteArray json);
     QJsonArray jsonArrayFromByteArray(QByteArray json);

@@ -10,7 +10,8 @@ namespace Telegram {
 class Update
 {
 public:
-    Update() {}
+    Update() = delete; //  {}
+    Update(const Update&u) : id(u.id), message(u.message) {}
     Update(QJsonObject update);
 
     quint32 id;

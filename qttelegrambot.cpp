@@ -2,11 +2,12 @@
 
 using namespace Telegram;
 
-Bot::Bot(QString token, bool updates, quint32 updateInterval, quint32 pollingTimeout, QObject *parent) :
+Bot::Bot(const QString &token, bool updates, quint32 updateInterval, quint32 pollingTimeout, QObject *parent) :
     QObject(parent),
     m_net(new Networking(token)),
     m_internalUpdateTimer(new QTimer(this)),
     m_updateInterval(updateInterval),
+    m_updateOffset(0),
     m_pollingTimeout(pollingTimeout)
 {
     QLoggingCategory::setFilterRules("qt.network.ssl.warning=false");
@@ -20,6 +21,8 @@ Bot::Bot(QString token, bool updates, quint32 updateInterval, quint32 pollingTim
 
 Bot::~Bot()
 {
+    m_internalUpdateTimer->stop();
+    delete m_internalUpdateTimer;
     delete m_net;
 }
 
@@ -42,13 +45,13 @@ User Bot::getMe()
     return ret;
 }
 
-bool Bot::sendMessage(QVariant chatId, QString text, bool markdown, bool disableWebPagePreview, qint32 replyToMessageId, const GenericReply &replyMarkup)
+bool Bot::sendMessage(QVariant chatId, const QString &text, bool markdown, bool disableWebPagePreview, qint32 replyToMessageId, const GenericReply &replyMarkup)
 {
     ParameterList params;
     if (markdown) params.insert("parse_mode", HttpParameter("Markdown"));
     if (disableWebPagePreview) params.insert("disable_web_page_preview", HttpParameter(disableWebPagePreview));
 
-    return this->_sendPayload(chatId, text, ParameterList(), replyToMessageId, replyMarkup, "text", ENDPOINT_SEND_MESSAGE);
+    return this->_sendPayload(chatId, text, params, replyToMessageId, replyMarkup, "text", ENDPOINT_SEND_MESSAGE);
 }
 
 bool Bot::forwardMessage(QVariant chatId, quint32 fromChatId, quint32 messageId)
@@ -110,7 +113,8 @@ bool Bot::sendDocument(QVariant chatId, QFile *file, qint32 replyToMessageId, co
 
 bool Bot::sendDocument(QVariant chatId, QString fileId, qint32 replyToMessageId, const GenericReply &replyMarkup)
 {
-    return this->_sendPayload(chatId, fileId, ParameterList(), replyToMessageId, replyMarkup, "document", ENDPOINT_SEND_DOCUMENT);
+    ParameterList params;
+    return this->_sendPayload(chatId, fileId, params, replyToMessageId, replyMarkup, "document", ENDPOINT_SEND_DOCUMENT);
 }
 
 bool Bot::sendSticker(QVariant chatId, QFile *file, qint32 replyToMessageId, const GenericReply &replyMarkup)
@@ -120,7 +124,8 @@ bool Bot::sendSticker(QVariant chatId, QFile *file, qint32 replyToMessageId, con
 
 bool Bot::sendSticker(QVariant chatId, QString fileId, qint32 replyToMessageId, const GenericReply &replyMarkup)
 {
-    return this->_sendPayload(chatId, fileId, ParameterList(), replyToMessageId, replyMarkup, "sticker", ENDPOINT_SEND_STICKER);
+    ParameterList params;
+    return this->_sendPayload(chatId, fileId, params, replyToMessageId, replyMarkup, "sticker", ENDPOINT_SEND_STICKER);
 }
 
 bool Bot::sendVideo(QVariant chatId, QFile *file, qint64 duration, QString caption, qint32 replyToMessageId, const GenericReply &replyMarkup)
@@ -264,7 +269,7 @@ QList<Update> Bot::getUpdates(quint32 timeout, quint32 limit, quint32 offset)
     return ret;
 }
 
-bool Bot::setWebhook(QString url, QFile *certificate)
+bool Bot::setWebhook(const QString &url, QFile *certificate)
 {
     ParameterList params;
     params.insert("url", HttpParameter(url));
@@ -287,7 +292,7 @@ bool Bot::setWebhook(QString url, QFile *certificate)
     return success;
 }
 
-File Bot::getFile(QString fileId)
+File Bot::getFile(const QString &fileId)
 {
     ParameterList params;
     params.insert("file_id", HttpParameter(fileId));
@@ -327,7 +332,7 @@ bool Bot::_sendPayload(QVariant chatId, QFile *filePayload, ParameterList params
     return success;
 }
 
-bool Bot::_sendPayload(QVariant chatId, QString textPayload, ParameterList params, qint32 replyToMessageId, const GenericReply &replyMarkup, QString payloadField, QString endpoint)
+bool Bot::_sendPayload(const QVariant &chatId, const QString &textPayload, ParameterList &params, qint32 replyToMessageId, const GenericReply &replyMarkup, const QString &payloadField, const QString &endpoint)
 {
     if (chatId.type() != QVariant::String && chatId.type() != QVariant::Int) {
         qCritical("Please provide a QString or int as chatId");

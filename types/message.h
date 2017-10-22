@@ -1,6 +1,7 @@
 #ifndef MESSAGE_H
 #define MESSAGE_H
 
+#include <memory>
 #include <QDebug>
 
 #include <QString>
@@ -24,8 +25,11 @@ namespace Telegram {
 class Message
 {
 public:
-    Message() {}
+    Message() : id(0), boolean(false) {}
     Message(QJsonObject message);
+    //Message(const Message &m); not needed with shared_ptr
+    ~Message();
+    //Message &operator =(const Message &); not needed with shared_ptr
 
     /**
      * @brief Telegram message events
@@ -45,7 +49,7 @@ public:
     User from;
     User forwardFrom;
     QDateTime forwardDate;
-    Message *replyToMessage;
+    std::shared_ptr<Message> replyToMessage;
 
     MessageType type;
 

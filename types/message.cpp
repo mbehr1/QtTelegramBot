@@ -1,11 +1,17 @@
+#include <QDebug>
 #include "message.h"
 
 using namespace Telegram;
 
-Message::Message(QJsonObject message)
+Message::~Message()
 {
+}
+
+Message::Message(QJsonObject message) : boolean(false)
+{
+    //qDebug() << __PRETTY_FUNCTION__ << message;
     id = message.value("message_id").toInt();
-    date = QDateTime::fromMSecsSinceEpoch(message.value("date").toInt());
+    date = QDateTime::fromMSecsSinceEpoch(1000ull*message.value("date").toInt());
     chat = Chat(message.value("chat").toObject());
 
     /**
@@ -32,10 +38,10 @@ Message::Message(QJsonObject message)
         forwardFrom = User(message.value("forward_from").toObject());
     }
     if (message.contains("forward_date")) {
-        forwardDate = QDateTime::fromMSecsSinceEpoch(message.value("forward_date").toInt());
+        forwardDate = QDateTime::fromMSecsSinceEpoch(1000ull*message.value("forward_date").toInt());
     }
     if (message.contains("reply_to_message")) {
-        replyToMessage = new Message(message.value("reply_to_message").toObject());
+        replyToMessage = std::make_shared<Message>(message.value("reply_to_message").toObject());
     }
 
     // Parse payload

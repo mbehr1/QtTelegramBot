@@ -29,9 +29,14 @@ namespace Telegram {
 
 class HttpParameter {
 public:
-    HttpParameter() {}
-    HttpParameter(QVariant value, bool isFile = false, QString mimeType = "text/plain", QString filename = "") :
-        value(value.toByteArray()), isFile(isFile), mimeType(mimeType), filename(filename) {}
+    HttpParameter() = delete; //  : isFile(false) {}
+    HttpParameter(const QVariant &aValue, bool aIsFile = false, QString aMimeType = "text/plain", QString aFilename = "") :
+        isFile(aIsFile), mimeType(aMimeType), filename(aFilename) {
+        if (aValue.canConvert<QByteArray>())
+            value = aValue.toByteArray();
+        else
+            qWarning() << __PRETTY_FUNCTION__ << "can't convert" << aValue;
+    }
 
     QByteArray value;
     bool isFile;
@@ -48,19 +53,19 @@ public:
     Networking(QString token, QObject *parent = 0);
     ~Networking();
 
-    enum Method { GET, POST, UPLOAD };
+    enum Method { GET=1, POST, UPLOAD };
 
-    QByteArray request(QString endpoint, ParameterList params, Method method);
+    QByteArray request(const QString &endpoint, const ParameterList &params, Method method);
 
 private:
     QNetworkAccessManager *m_nam;
     QString m_token;
 
     QUrl buildUrl(QString endpoint);
-    QByteArray parameterListToString(ParameterList list);
+    QByteArray parameterListToString(const ParameterList &list);
 
-    QByteArray generateMultipartBoundary(ParameterList list);
-    QByteArray generateMultipartFormData(ParameterList list, QByteArray boundary);
+    QByteArray generateMultipartBoundary(const ParameterList &list);
+    QByteArray generateMultipartFormData(const ParameterList &list, const QByteArray &boundary);
     QString generateRandomString(int length);
 };
 
