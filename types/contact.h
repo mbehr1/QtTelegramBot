@@ -10,7 +10,7 @@ namespace Telegram {
 class Contact
 {
 public:
-    Contact() {}
+    Contact() : userId(0) {}
     Contact(QJsonObject contact);
 
     QString phoneNumber;

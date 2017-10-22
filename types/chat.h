@@ -10,7 +10,7 @@ namespace Telegram {
 class Chat
 {
 public:
-    Chat() {}
+    Chat() : id(0), type(Private) {}
     Chat(QJsonObject chat);
 
     enum ChatType {

@@ -9,8 +9,8 @@ namespace Telegram {
 class File
 {
 public:
-    File(QString fileId, qint64 fileSize = -1,  QString filePath = QString()) :
-    fileId(fileId), fileSize(fileSize), filePath(filePath) {}
+    File(QString aFileId, qint64 aFileSize = -1,  QString filePath = QString()) :
+    fileId(aFileId), fileSize(aFileSize), filePath(filePath) {}
 
     QString fileId;
     qint64 fileSize;

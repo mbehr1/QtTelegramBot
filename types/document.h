@@ -11,7 +11,7 @@ namespace Telegram {
 class Document
 {
 public:
-    Document() {}
+    Document() : fileSize(0) {}
     Document(QJsonObject document);
 
     QString fileId;

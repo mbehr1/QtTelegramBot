@@ -4,7 +4,7 @@
 
 using namespace Telegram;
 
-Networking::Networking(QString token, QObject *parent) :
+Networking::Networking(const QString &token, QObject *parent) :
     QObject(parent),
     m_nam(new QNetworkAccessManager(this)),
     m_token(token)
@@ -77,7 +77,7 @@ QByteArray Networking::request(const QString &endpoint, const ParameterList &par
     return ret;
 }
 
-QUrl Networking::buildUrl(QString endpoint)
+QUrl Networking::buildUrl(QString endpoint) const
 {
     QUrl url = QUrl();
     url.setScheme("https");
@@ -87,7 +87,7 @@ QUrl Networking::buildUrl(QString endpoint)
     return url;
 }
 
-QByteArray Networking::parameterListToString(const ParameterList &list)
+QByteArray Networking::parameterListToString(const ParameterList &list) const
 {
     QByteArray ret;
 
@@ -101,7 +101,7 @@ QByteArray Networking::parameterListToString(const ParameterList &list)
     return ret;
 }
 
-QByteArray Networking::generateMultipartBoundary(const ParameterList &list)
+QByteArray Networking::generateMultipartBoundary(const ParameterList &list) const
 {
     // Generates a boundary that is not existent in the data
     QByteArray result;
@@ -120,7 +120,7 @@ QByteArray Networking::generateMultipartBoundary(const ParameterList &list)
     return result;
 }
 
-QByteArray Networking::generateMultipartFormData(const ParameterList &list, const QByteArray &boundary)
+QByteArray Networking::generateMultipartFormData(const ParameterList &list, const QByteArray &boundary) const
 {
     QByteArray result;
 
@@ -147,7 +147,7 @@ QByteArray Networking::generateMultipartFormData(const ParameterList &list, cons
     return result;
 }
 
-QString Networking::generateRandomString(int length)
+QString Networking::generateRandomString(int length) const
 {
     static const std::string chars("qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM1234567890-=[]\\;',./!@#$%^&*()_+{}|:\"<>?`~");
     static const size_t charsLen = chars.length();

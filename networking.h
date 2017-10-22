@@ -50,7 +50,7 @@ class Networking : public QObject
 {
     Q_OBJECT
 public:
-    Networking(QString token, QObject *parent = 0);
+    Networking(const QString &token, QObject *parent = 0);
     ~Networking();
 
     enum Method { GET=1, POST, UPLOAD };
@@ -61,12 +61,12 @@ private:
     QNetworkAccessManager *m_nam;
     QString m_token;
 
-    QUrl buildUrl(QString endpoint);
-    QByteArray parameterListToString(const ParameterList &list);
+    QUrl buildUrl(QString endpoint) const;
+    QByteArray parameterListToString(const ParameterList &list) const;
 
-    QByteArray generateMultipartBoundary(const ParameterList &list);
-    QByteArray generateMultipartFormData(const ParameterList &list, const QByteArray &boundary);
-    QString generateRandomString(int length);
+    QByteArray generateMultipartBoundary(const ParameterList &list) const;
+    QByteArray generateMultipartFormData(const ParameterList &list, const QByteArray &boundary) const;
+    QString generateRandomString(int length) const;
 };
 
 }

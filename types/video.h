@@ -10,7 +10,7 @@ namespace Telegram {
 class Video
 {
 public:
-    Video() {}
+    Video() : width(0), height(0), duration(0) {}
     Video(QJsonObject video);
 
     QString fileId;

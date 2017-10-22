@@ -10,7 +10,7 @@ namespace Telegram {
 class Audio
 {
 public:
-    Audio() {}
+    Audio() : duration(0), fileSize(0) {}
     Audio(QJsonObject audio);
 
     QString fileId;

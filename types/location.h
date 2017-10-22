@@ -10,7 +10,7 @@ namespace Telegram {
 class Location
 {
 public:
-    Location() {}
+    Location() : longitude(0.0), latitude(0.0) {}
     Location(QJsonObject location);
 
     float longitude;

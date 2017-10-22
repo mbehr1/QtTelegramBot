@@ -11,7 +11,7 @@ namespace Telegram {
 class Sticker
 {
 public:
-    Sticker() {}
+    Sticker() : width(0), height(0), fileSize(0) {}
     Sticker(QJsonObject sticker);
 
     QString fileId;

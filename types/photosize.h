@@ -10,7 +10,7 @@ namespace Telegram {
 class PhotoSize
 {
 public:
-    PhotoSize() {}
+    PhotoSize() : width(0), height(0), fileSize(0) {}
     PhotoSize(QJsonObject photoSize);
 
     QString fileId;
