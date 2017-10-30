@@ -9,22 +9,27 @@ Networking::Networking(const QString &token, QObject *parent) :
     m_nam(new QNetworkAccessManager(this)),
     m_token(token)
 {
+    connect(m_nam, SIGNAL(finished(QNetworkReply*)),
+            this, SIGNAL(requestFinished(QNetworkReply*)));
 }
 
 Networking::~Networking()
 {
+    disconnect(m_nam, SIGNAL(finished(QNetworkReply*)),
+               this, SIGNAL(requestFinished(QNetworkReply*)));
+
     delete m_nam;
 }
 
-QByteArray Networking::request(const QString &endpoint, const ParameterList &params, Networking::Method method)
+QNetworkReply *Networking::asyncRequest(const QString &endpoint, const ParameterList &params, Networking::Method method)
 {
     if (endpoint.isEmpty()) {
         qWarning("Cannot do request without endpoint");
-        return QByteArray();
+        return 0;
     }
     if (m_token.isEmpty()) {
         qWarning("Cannot do request without a Telegram Bot Token");
-        return QByteArray();
+        return 0;
     }
 
     QNetworkRequest req;
@@ -34,8 +39,6 @@ QByteArray Networking::request(const QString &endpoint, const ParameterList &par
 #ifdef DEBUG
     qDebug("HTTP request: %s %d %s", qUtf8Printable(req.url().toString()), method, parameterListToString(params).toStdString().c_str());
 #endif
-
-    QEventLoop loop;
 
     QNetworkReply *reply = 0;
 
@@ -54,15 +57,13 @@ QByteArray Networking::request(const QString &endpoint, const ParameterList &par
         reply = m_nam->post(req, requestData);
     } else {
         qCritical("No valid method!");
-        reply = NULL;
     }
 
     if (reply == NULL) {
         qWarning("Reply is NULL");
-        delete reply;
-        return QByteArray();
     }
 
+    /*
     QObject::connect(reply, &QNetworkReply::finished, &loop, &QEventLoop::quit);
     loop.exec();
 
@@ -75,6 +76,8 @@ QByteArray Networking::request(const QString &endpoint, const ParameterList &par
     QByteArray ret = reply->readAll();
     delete reply;
     return ret;
+    */
+    return reply;
 }
 
 QUrl Networking::buildUrl(QString endpoint) const
