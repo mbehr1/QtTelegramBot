@@ -57,6 +57,7 @@ public:
      */
     User getMe();
     bool asyncGetMe(); // emits signal getMe async
+    bool asyncGetChat(const QVariant &chatId); // emits signal gotObject with Chat object
 
     /**
      * Send text message.
@@ -69,7 +70,10 @@ public:
      * @return success
      * @see https://core.telegram.org/bots/api#sendmessage
      */
-    bool sendMessage(QVariant chatId, const QString &text, bool markdown = false, bool disableWebPagePreview = false, qint32 replyToMessageId = -1, const GenericReply &replyMarkup = GenericReply());
+    bool sendMessage(const ChatId &chatId, const QString &text, bool markdown = false, bool disableWebPagePreview = false, qint32 replyToMessageId = -1, const GenericReply &replyMarkup = GenericReply());
+
+
+    bool setChatTitle(const ChatId &chatId, const QString &title);
 
     /**
      * Forward messages of any kind.
@@ -91,7 +95,7 @@ public:
      * @return success
      * @see https://core.telegram.org/bots/api#sendphoto
      */
-    bool sendPhoto(QVariant chatId, QFile *file, QString caption = QString(), qint32 replyToMessageId = -1, const GenericReply &replyMarkup = GenericReply());
+    bool sendPhoto(const ChatId &chatId, QFile *file, QString caption = QString(), qint32 replyToMessageId = -1, const GenericReply &replyMarkup = GenericReply());
 
     /**
      * Send a photo
@@ -103,7 +107,7 @@ public:
      * @return success
      * @see https://core.telegram.org/bots/api#sendphoto
      */
-    bool sendPhoto(QVariant chatId, QString fileId, QString caption = QString(), qint32 replyToMessageId = -1, const GenericReply &replyMarkup = GenericReply());
+    bool sendPhoto(const ChatId &chatId, QString fileId, QString caption = QString(), qint32 replyToMessageId = -1, const GenericReply &replyMarkup = GenericReply());
 
     /**
      * Send audio
@@ -117,7 +121,7 @@ public:
      * @return success
      * @see https://core.telegram.org/bots/api#sendaudio
      */
-    bool sendAudio(QVariant chatId, QFile *file, qint64 duration = -1, QString performer = QString(), QString title = QString(), qint32 replyToMessageId = -1, const GenericReply &replyMarkup = GenericReply());
+    bool sendAudio(const ChatId &chatId, QFile *file, qint64 duration = -1, QString performer = QString(), QString title = QString(), qint32 replyToMessageId = -1, const GenericReply &replyMarkup = GenericReply());
 
     /**
      * Send audio
@@ -131,7 +135,7 @@ public:
      * @return success
      * @see https://core.telegram.org/bots/api#sendaudio
      */
-    bool sendAudio(QVariant chatId, QString fileId, qint64 duration = -1, QString performer = QString(), QString title = QString(), qint32 replyToMessageId = -1, const GenericReply &replyMarkup = GenericReply());
+    bool sendAudio(const ChatId &chatId, QString fileId, qint64 duration = -1, QString performer = QString(), QString title = QString(), qint32 replyToMessageId = -1, const GenericReply &replyMarkup = GenericReply());
 
     /**
      * Send a document
@@ -142,7 +146,7 @@ public:
      * @return success
      * @see https://core.telegram.org/bots/api#senddocument
      */
-    bool sendDocument(QVariant chatId, QFile *file, qint32 replyToMessageId = -1, const GenericReply &replyMarkup = GenericReply());
+    bool sendDocument(const ChatId &chatId, QFile *file, qint32 replyToMessageId = -1, const GenericReply &replyMarkup = GenericReply());
 
     /**
      * Send a document
@@ -153,7 +157,7 @@ public:
      * @return success
      * @see https://core.telegram.org/bots/api#senddocument
      */
-    bool sendDocument(QVariant chatId, QString fileId, qint32 replyToMessageId = -1, const GenericReply &replyMarkup = GenericReply());
+    bool sendDocument(const ChatId &chatId, QString fileId, qint32 replyToMessageId = -1, const GenericReply &replyMarkup = GenericReply());
 
     /**
      * Send a sticker
@@ -164,7 +168,7 @@ public:
      * @return success
      * @see https://core.telegram.org/bots/api#sendsticker
      */
-    bool sendSticker(QVariant chatId, QFile *file, qint32 replyToMessageId = -1, const GenericReply &replyMarkup = GenericReply());
+    bool sendSticker(const ChatId &chatId, QFile *file, qint32 replyToMessageId = -1, const GenericReply &replyMarkup = GenericReply());
 
     /**
      * Send a sticker
@@ -175,7 +179,7 @@ public:
      * @return success
      * @see https://core.telegram.org/bots/api#sendsticker
      */
-    bool sendSticker(QVariant chatId, QString fileId, qint32 replyToMessageId = -1, const GenericReply &replyMarkup = GenericReply());
+    bool sendSticker(const ChatId &chatId, QString fileId, qint32 replyToMessageId = -1, const GenericReply &replyMarkup = GenericReply());
 
     /**
      * Send a video
@@ -188,7 +192,7 @@ public:
      * @return success
      * @see https://core.telegram.org/bots/api#sendvideo
      */
-    bool sendVideo(QVariant chatId, QFile *file, qint64 duration = -1, QString caption = QString(), qint32 replyToMessageId = -1, const GenericReply &replyMarkup = GenericReply());
+    bool sendVideo(const ChatId &chatId, QFile *file, qint64 duration = -1, QString caption = QString(), qint32 replyToMessageId = -1, const GenericReply &replyMarkup = GenericReply());
 
     /**
      * Send a video
@@ -201,7 +205,7 @@ public:
      * @return success
      * @see https://core.telegram.org/bots/api#sendvideo
      */
-    bool sendVideo(QVariant chatId, QString fileId, qint64 duration = -1, QString caption = QString(), qint32 replyToMessageId = -1, const GenericReply &replyMarkup = GenericReply());
+    bool sendVideo(const ChatId &chatId, QString fileId, qint64 duration = -1, QString caption = QString(), qint32 replyToMessageId = -1, const GenericReply &replyMarkup = GenericReply());
 
     /**
      * Send a voice
@@ -213,7 +217,7 @@ public:
      * @return success
      * @see https://core.telegram.org/bots/api#sendvoice
      */
-    bool sendVoice(QVariant chatId, QFile *file, qint64 duration = -1, qint32 replyToMessageId = -1, const GenericReply &replyMarkup = GenericReply());
+    bool sendVoice(const ChatId &chatId, QFile *file, qint64 duration = -1, qint32 replyToMessageId = -1, const GenericReply &replyMarkup = GenericReply());
 
     /**
      * Send a voice
@@ -225,7 +229,7 @@ public:
      * @return success
      * @see https://core.telegram.org/bots/api#sendvoice
      */
-    bool sendVoice(QVariant chatId, QString fileId, qint64 duration = -1, qint32 replyToMessageId = -1, const GenericReply &replyMarkup = GenericReply());
+    bool sendVoice(const ChatId &chatId, QString fileId, qint64 duration = -1, qint32 replyToMessageId = -1, const GenericReply &replyMarkup = GenericReply());
 
     /**
      * Send a location
@@ -288,8 +292,8 @@ public:
 private:
     Networking *m_net;
 
-    bool _sendPayload(QVariant chatId, QFile *filePayload, ParameterList params, qint32 replyToMessageId, const GenericReply &replyMarkup, QString payloadField, QString endpoint);
-    bool _sendPayload(const QVariant &chatId, const QString &textPayload, ParameterList &params, qint32 replyToMessageId, const GenericReply &replyMarkup, const QString &payloadField, const QString &endpoint);
+    bool _sendPayload(const ChatId &chatId, QFile *filePayload, ParameterList params, qint32 replyToMessageId, const GenericReply &replyMarkup, QString payloadField, QString endpoint);
+    bool _sendPayload(const ChatId &chatId, const QString &textPayload, ParameterList &params, qint32 replyToMessageId, const GenericReply &replyMarkup, const QString &payloadField, const QString &endpoint);
 
     QJsonObject jsonObjectFromByteArray(QByteArray json);
     QJsonArray jsonArrayFromByteArray(QByteArray json);
@@ -298,7 +302,7 @@ private:
     void internalGetUpdates();
     QTimer *m_internalUpdateTimer;
     quint32 m_updateInterval;
-    quint32 m_updateOffset;
+    uint64_t m_updateOffset;
     quint32 m_pollingTimeout;
     //typedef void (*processReplyFunc)(QNetworkReply*);
     std::map<QNetworkReply*, std::function<void(QNetworkReply*)>> _pendingReplies;
@@ -308,7 +312,8 @@ private slots:
 
 signals:
     void getMe(User user);
-    void message(Message message);
+    void gotObject(QJsonObject obj);
+    void message(uint64_t update_id, Message message);
 };
 
 }

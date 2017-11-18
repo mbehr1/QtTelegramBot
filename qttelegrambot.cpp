@@ -90,6 +90,29 @@ bool Bot::asyncGetMe()
     return true;
 }
 
+bool Bot::asyncGetChat(const QVariant &chatId)
+{
+    ParameterList params;
+    params.insert("chat_id", HttpParameter(chatId));
+
+    auto reply = m_net->asyncRequest(ENDPOINT_GET_CHAT, params, Networking::GET);
+    if (!reply) return false;
+    _pendingReplies.insert(std::make_pair(reply,
+                                          [this](QNetworkReply *reply) {
+                               if (reply->error() != QNetworkReply::NoError) {
+                                   qCritical("%s", qPrintable(QString("[%1] %2").arg(reply->error()).arg(reply->errorString())));
+                                   return; // todo emit empty/unknown user here!
+                               }
+                               QByteArray arr = reply->readAll();
+                               QJsonObject json = jsonObjectFromByteArray(arr);
+                               qDebug() << __PRETTY_FUNCTION__ << json;
+                               emit gotObject(json);
+                           }
+                               ));
+    return true;
+}
+
+
 /*
 User Bot::getMe()
 {   
@@ -111,7 +134,7 @@ User Bot::getMe()
 }
 */
 
-bool Bot::sendMessage(QVariant chatId, const QString &text, bool markdown, bool disableWebPagePreview, qint32 replyToMessageId, const GenericReply &replyMarkup)
+bool Bot::sendMessage(const ChatId &chatId, const QString &text, bool markdown, bool disableWebPagePreview, qint32 replyToMessageId, const GenericReply &replyMarkup)
 {
     ParameterList params;
     if (markdown) params.insert("parse_mode", HttpParameter("Markdown"));
@@ -119,6 +142,14 @@ bool Bot::sendMessage(QVariant chatId, const QString &text, bool markdown, bool 
 
     return this->_sendPayload(chatId, text, params, replyToMessageId, replyMarkup, "text", ENDPOINT_SEND_MESSAGE);
 }
+
+bool Bot::setChatTitle(const ChatId &chatId, const QString &title)
+{
+    ParameterList params;
+
+    return this->_sendPayload(chatId, title, params, 0, GenericReply(), "title", ENDPOINT_SET_CHAT_TITLE);
+}
+
 
 /*
 bool Bot::forwardMessage(QVariant chatId, quint32 fromChatId, quint32 messageId)
@@ -137,7 +168,7 @@ bool Bot::forwardMessage(QVariant chatId, quint32 fromChatId, quint32 messageId)
     return success;
 }*/
 
-bool Bot::sendPhoto(QVariant chatId, QFile *file, QString caption, qint32 replyToMessageId, const GenericReply &replyMarkup)
+bool Bot::sendPhoto(const ChatId &chatId, QFile *file, QString caption, qint32 replyToMessageId, const GenericReply &replyMarkup)
 {
     ParameterList params;
     if (!caption.isEmpty()) params.insert("caption", HttpParameter(caption));
@@ -145,7 +176,7 @@ bool Bot::sendPhoto(QVariant chatId, QFile *file, QString caption, qint32 replyT
     return this->_sendPayload(chatId, file, params, replyToMessageId, replyMarkup, "photo", ENDPOINT_SEND_PHOTO);
 }
 
-bool Bot::sendPhoto(QVariant chatId, QString fileId, QString caption, qint32 replyToMessageId, const GenericReply &replyMarkup)
+bool Bot::sendPhoto(const ChatId &chatId, QString fileId, QString caption, qint32 replyToMessageId, const GenericReply &replyMarkup)
 {
     ParameterList params;
     if (!caption.isEmpty()) params.insert("caption", HttpParameter(caption));
@@ -153,7 +184,7 @@ bool Bot::sendPhoto(QVariant chatId, QString fileId, QString caption, qint32 rep
     return this->_sendPayload(chatId, fileId, params, replyToMessageId, replyMarkup, "photo", ENDPOINT_SEND_PHOTO);
 }
 
-bool Bot::sendAudio(QVariant chatId, QFile *file, qint64 duration, QString performer, QString title, qint32 replyToMessageId, const GenericReply &replyMarkup)
+bool Bot::sendAudio(const ChatId &chatId, QFile *file, qint64 duration, QString performer, QString title, qint32 replyToMessageId, const GenericReply &replyMarkup)
 {
     ParameterList params;
     if (duration >= 0) params.insert("duration", HttpParameter(duration));
@@ -163,7 +194,7 @@ bool Bot::sendAudio(QVariant chatId, QFile *file, qint64 duration, QString perfo
     return this->_sendPayload(chatId, file, params, replyToMessageId, replyMarkup, "audio", ENDPOINT_SEND_AUDIO);
 }
 
-bool Bot::sendAudio(QVariant chatId, QString fileId, qint64 duration, QString performer, QString title, qint32 replyToMessageId, const GenericReply &replyMarkup)
+bool Bot::sendAudio(const ChatId &chatId, QString fileId, qint64 duration, QString performer, QString title, qint32 replyToMessageId, const GenericReply &replyMarkup)
 {
     ParameterList params;
     if (duration >= 0) params.insert("duration", HttpParameter(duration));
@@ -173,29 +204,29 @@ bool Bot::sendAudio(QVariant chatId, QString fileId, qint64 duration, QString pe
     return this->_sendPayload(chatId, fileId, params, replyToMessageId, replyMarkup, "audio", ENDPOINT_SEND_AUDIO);
 }
 
-bool Bot::sendDocument(QVariant chatId, QFile *file, qint32 replyToMessageId, const GenericReply &replyMarkup)
+bool Bot::sendDocument(const ChatId &chatId, QFile *file, qint32 replyToMessageId, const GenericReply &replyMarkup)
 {
     return this->_sendPayload(chatId, file, ParameterList(), replyToMessageId, replyMarkup, "document", ENDPOINT_SEND_DOCUMENT);
 }
 
-bool Bot::sendDocument(QVariant chatId, QString fileId, qint32 replyToMessageId, const GenericReply &replyMarkup)
+bool Bot::sendDocument(const ChatId &chatId, QString fileId, qint32 replyToMessageId, const GenericReply &replyMarkup)
 {
     ParameterList params;
     return this->_sendPayload(chatId, fileId, params, replyToMessageId, replyMarkup, "document", ENDPOINT_SEND_DOCUMENT);
 }
 
-bool Bot::sendSticker(QVariant chatId, QFile *file, qint32 replyToMessageId, const GenericReply &replyMarkup)
+bool Bot::sendSticker(const ChatId &chatId, QFile *file, qint32 replyToMessageId, const GenericReply &replyMarkup)
 {
     return this->_sendPayload(chatId, file, ParameterList(), replyToMessageId, replyMarkup, "sticker", ENDPOINT_SEND_STICKER);
 }
 
-bool Bot::sendSticker(QVariant chatId, QString fileId, qint32 replyToMessageId, const GenericReply &replyMarkup)
+bool Bot::sendSticker(const ChatId &chatId, QString fileId, qint32 replyToMessageId, const GenericReply &replyMarkup)
 {
     ParameterList params;
     return this->_sendPayload(chatId, fileId, params, replyToMessageId, replyMarkup, "sticker", ENDPOINT_SEND_STICKER);
 }
 
-bool Bot::sendVideo(QVariant chatId, QFile *file, qint64 duration, QString caption, qint32 replyToMessageId, const GenericReply &replyMarkup)
+bool Bot::sendVideo(const ChatId &chatId, QFile *file, qint64 duration, QString caption, qint32 replyToMessageId, const GenericReply &replyMarkup)
 {
     ParameterList params;
     params.insert("duration", HttpParameter(duration));
@@ -204,7 +235,7 @@ bool Bot::sendVideo(QVariant chatId, QFile *file, qint64 duration, QString capti
     return this->_sendPayload(chatId, file, params, replyToMessageId, replyMarkup, "video", ENDPOINT_SEND_VIDEO);
 }
 
-bool Bot::sendVideo(QVariant chatId, QString fileId, qint64 duration, QString caption, qint32 replyToMessageId, const GenericReply &replyMarkup)
+bool Bot::sendVideo(const ChatId &chatId, QString fileId, qint64 duration, QString caption, qint32 replyToMessageId, const GenericReply &replyMarkup)
 {
     ParameterList params;
     params.insert("duration", HttpParameter(duration));
@@ -213,7 +244,7 @@ bool Bot::sendVideo(QVariant chatId, QString fileId, qint64 duration, QString ca
     return this->_sendPayload(chatId, fileId, params, replyToMessageId, replyMarkup, "video", ENDPOINT_SEND_VIDEO);
 }
 
-bool Bot::sendVoice(QVariant chatId, QFile *file, qint64 duration, qint32 replyToMessageId, const GenericReply &replyMarkup)
+bool Bot::sendVoice(const ChatId &chatId, QFile *file, qint64 duration, qint32 replyToMessageId, const GenericReply &replyMarkup)
 {
     ParameterList params;
     params.insert("duration", HttpParameter(duration));
@@ -221,7 +252,7 @@ bool Bot::sendVoice(QVariant chatId, QFile *file, qint64 duration, qint32 replyT
     return this->_sendPayload(chatId, file, params, replyToMessageId, replyMarkup, "voice", ENDPOINT_SEND_VOICE);
 }
 
-bool Bot::sendVoice(QVariant chatId, QString fileId, qint64 duration, qint32 replyToMessageId, const GenericReply &replyMarkup)
+bool Bot::sendVoice(const ChatId &chatId, QString fileId, qint64 duration, qint32 replyToMessageId, const GenericReply &replyMarkup)
 {
     ParameterList params;
     params.insert("duration", HttpParameter(duration));
@@ -358,13 +389,8 @@ File Bot::getFile(const QString &fileId)
 }
 */
 
-bool Bot::_sendPayload(QVariant chatId, QFile *filePayload, ParameterList params, qint32 replyToMessageId, const GenericReply &replyMarkup, QString payloadField, QString endpoint)
+bool Bot::_sendPayload(const ChatId &chatId, QFile *filePayload, ParameterList params, qint32 replyToMessageId, const GenericReply &replyMarkup, QString payloadField, QString endpoint)
 {
-    if (chatId.type() != QVariant::String && chatId.type() != QVariant::Int) {
-        qCritical("Please provide a QString or int as chatId");
-        return false;
-    }
-
     params.insert("chat_id", HttpParameter(chatId));
 
     QMimeDatabase db;
@@ -403,12 +429,8 @@ bool Bot::_sendPayload(QVariant chatId, QFile *filePayload, ParameterList params
 }
 
 
-bool Bot::_sendPayload(const QVariant &chatId, const QString &textPayload, ParameterList &params, qint32 replyToMessageId, const GenericReply &replyMarkup, const QString &payloadField, const QString &endpoint)
+bool Bot::_sendPayload(const ChatId &chatId, const QString &textPayload, ParameterList &params, qint32 replyToMessageId, const GenericReply &replyMarkup, const QString &payloadField, const QString &endpoint)
 {
-    if (chatId.type() != QVariant::String && chatId.type() != QVariant::Int) {
-        qCritical("Please provide a QString or int as chatId");
-        return false;
-    }
     params.insert("chat_id", HttpParameter(chatId));
     params.insert(payloadField, HttpParameter(textPayload));
     if (replyToMessageId >= 0) params.insert("reply_to_message_id", HttpParameter(replyToMessageId));
@@ -496,7 +518,7 @@ QList<Update> Bot::getUpdates(quint32 timeout, quint32 limit, quint32 offset)
 void Bot::internalGetUpdates()
 {
     ParameterList params;
-    params.insert("offset", HttpParameter(m_updateOffset));
+    params.insert("offset", HttpParameter((int)m_updateOffset));
     params.insert("limit", HttpParameter(50));
     params.insert("timeout", HttpParameter(m_pollingTimeout));
     auto reply = m_net->asyncRequest(ENDPOINT_GET_UPDATES, params, Networking::GET);
@@ -516,10 +538,25 @@ void Bot::internalGetUpdates()
                                }
                                QByteArray arr = reply->readAll();
                                QJsonArray json = this->jsonArrayFromByteArray(arr);
+                               //if (json.count())
+                               // qDebug() << __PRETTY_FUNCTION__ << json;
                                foreach (QJsonValue value, json) {
-                                   Update u(Update(value.toObject()));
-                                   m_updateOffset = (u.id >= m_updateOffset ? u.id + 1 : m_updateOffset);
-                                   emit message(u.message);
+                                   if (value.isObject()) {
+                                       const QJsonObject &obj = value.toObject();
+                                       uint64_t id = 0;
+                                       if (obj.contains("update_id")) {
+                                           id = obj["update_id"].toDouble();
+                                           if (id >= m_updateOffset)
+                                            m_updateOffset = id + 1;
+                                       }
+
+                                       if (obj.contains("message")||obj.contains("channel_post")) {
+                                           Update u(obj);
+                                           emit message(id, u.message);
+                                       } else
+                                        qDebug() << __PRETTY_FUNCTION__ << "ignored obj:" << obj;
+                                   } else
+                                    qDebug() << __PRETTY_FUNCTION__ << "ignored:" << value;
                                }
                                if (m_internalUpdateTimer)
                                    m_internalUpdateTimer->start(m_updateInterval);

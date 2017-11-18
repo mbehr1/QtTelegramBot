@@ -24,6 +24,8 @@
 #define ENDPOINT_GET_UPDATES                "/getUpdates"
 #define ENDPOINT_SET_WEBHOOK                "/setWebhook"
 #define ENDPOINT_GET_FILE                   "/getFile"
+#define ENDPOINT_SET_CHAT_TITLE             "/setChatTitle"
+#define ENDPOINT_GET_CHAT                   "/getChat"
 
 namespace Telegram {
 

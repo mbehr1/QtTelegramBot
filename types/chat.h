@@ -7,6 +7,31 @@
 
 namespace Telegram {
 
+class Chat;
+class Message;
+
+class ChatId
+{
+public:
+    ChatId(int64_t id) : _idI(id) {}
+    ChatId(const QString &id) : _idI(0), _idS(id) {}
+    ChatId(const Message &msg); // prefer msg.from.id, then msg.chat.id
+    ChatId() = delete;
+    operator QVariant () const {
+        if (_idS.length())
+            return QVariant(_idS);
+        else
+            return QVariant(QString("%1").arg(_idI));
+    }
+    QString toString() const { if (_idS.length()) return _idS; else return QString("%1").arg(_idI);}
+    bool operator<( const ChatId &b) const;
+    bool operator==(const ChatId &b) const;
+    bool operator!=(const ChatId &b) const;
+protected:
+    int64_t _idI;
+    QString _idS;
+};
+
 class Chat
 {
 public:
@@ -17,7 +42,7 @@ public:
         Private, Group, Channel
     };
 
-    qint32 id;
+    int64_t id;
     ChatType type;
     QString title;
     QString username;
