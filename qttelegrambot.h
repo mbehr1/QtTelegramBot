@@ -30,6 +30,7 @@
 #include "types/reply/forcereply.h"
 
 namespace Telegram {
+Q_DECLARE_LOGGING_CATEGORY(CTelegram)
 
 typedef QList<QList<PhotoSize> > UserProfilePhotos;
 

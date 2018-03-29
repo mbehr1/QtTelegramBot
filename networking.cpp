@@ -1,8 +1,12 @@
 #include "networking.h"
 
+#include <QDebug>
+#include <QLoggingCategory>
 #include <ctime>
 
 using namespace Telegram;
+
+Q_LOGGING_CATEGORY(Telegram::CTelNet, "Telegram.Net")
 
 Networking::Networking(const QString &token, QObject *parent) :
     QObject(parent),
@@ -24,11 +28,11 @@ Networking::~Networking()
 QNetworkReply *Networking::asyncRequest(const QString &endpoint, const ParameterList &params, Networking::Method method)
 {
     if (endpoint.isEmpty()) {
-        qWarning("Cannot do request without endpoint");
+        qCWarning(CTelNet) << "Cannot do request without endpoint";
         return 0;
     }
     if (m_token.isEmpty()) {
-        qWarning("Cannot do request without a Telegram Bot Token");
+        qCWarning(CTelNet, "Cannot do request without a Telegram Bot Token");
         return 0;
     }
 
@@ -37,7 +41,7 @@ QNetworkReply *Networking::asyncRequest(const QString &endpoint, const Parameter
     req.setUrl(url);
 
 #ifdef DEBUG
-    qDebug("HTTP request: %s %d %s", qUtf8Printable(req.url().toString()), method, parameterListToString(params).toStdString().c_str());
+    qCDebug(CTelNet, "HTTP request: %s %d %s", qUtf8Printable(req.url().toString()), method, parameterListToString(params).toStdString().c_str());
 #endif
 
     QNetworkReply *reply = 0;
@@ -56,11 +60,11 @@ QNetworkReply *Networking::asyncRequest(const QString &endpoint, const Parameter
         req.setHeader(QNetworkRequest::ContentLengthHeader, requestData.length());
         reply = m_nam->post(req, requestData);
     } else {
-        qCritical("No valid method!");
+        qCCritical(CTelNet, "No valid method!");
     }
 
     if (reply == NULL) {
-        qWarning("Reply is NULL");
+        qCWarning(CTelNet, "Reply is NULL");
     }
 
     /*

@@ -6,6 +6,7 @@
 #include <QNetworkRequest>
 #include <QNetworkReply>
 #include <QEventLoop>
+#include <QLoggingCategory>
 
 #define API_HOST "api.telegram.org"
 
@@ -28,6 +29,7 @@
 #define ENDPOINT_GET_CHAT                   "/getChat"
 
 namespace Telegram {
+Q_DECLARE_LOGGING_CATEGORY(CTelNet)
 
 class HttpParameter {
 public:
