@@ -4,6 +4,8 @@
 
 using namespace Telegram;
 
+Q_LOGGING_CATEGORY(Telegram::CTelBot, "telegram.bot")
+
 Bot::Bot(const QString &token, bool updates, quint32 updateInterval, quint32 pollingTimeout, QObject *parent) :
     QObject(parent),
     m_net(new Networking(token)),
@@ -32,12 +34,12 @@ Bot::~Bot()
     m_internalUpdateTimer = 0;
 
     if (_pendingReplies.size()) {
-        qWarning() << __PRETTY_FUNCTION__ << "got replies pending" << _pendingReplies.size();
+        qCWarning(CTelBot) << __PRETTY_FUNCTION__ << "got replies pending" << _pendingReplies.size();
         while (_pendingReplies.size()) {
             QCoreApplication::instance()->processEvents(QEventLoop::AllEvents, 1000);
             QThread::msleep(100);
         }
-        qDebug() << __PRETTY_FUNCTION__ << "processed all replies pending" << _pendingReplies.size();
+        qCDebug(CTelBot) << __PRETTY_FUNCTION__ << "processed all replies pending" << _pendingReplies.size();
     }
     disconnect(m_net, SIGNAL(requestFinished(QNetworkReply*)),
                this, SLOT(requestFinished(QNetworkReply*)));
@@ -48,7 +50,7 @@ Bot::~Bot()
 void Bot::requestFinished(QNetworkReply *reply)
 {
     if (!reply)
-        qWarning() << __PRETTY_FUNCTION__ << "null reply!";
+        qCWarning(CTelBot) << __PRETTY_FUNCTION__ << "null reply!";
     else {
         // search in map
         auto it = _pendingReplies.find(reply);
@@ -57,7 +59,7 @@ void Bot::requestFinished(QNetworkReply *reply)
             fn(reply);
             _pendingReplies.erase(reply);
         } else {
-            qWarning() << __PRETTY_FUNCTION__ << "couldnt find reply in pendingReplies map!" << reply;
+            qCWarning(CTelBot) << __PRETTY_FUNCTION__ << "couldnt find reply in pendingReplies map!" << reply;
         }
         reply->deleteLater();
     }
@@ -70,7 +72,7 @@ bool Bot::asyncGetMe()
     _pendingReplies.insert(std::make_pair(reply,
                                           [this](QNetworkReply *reply) {
                                if (reply->error() != QNetworkReply::NoError) {
-                                   qCritical("%s", qPrintable(QString("[%1] %2").arg(reply->error()).arg(reply->errorString())));
+                                   qCCritical(CTelBot, "%s", qPrintable(QString("[%1] %2 %3").arg(reply->error()).arg(reply->errorString()).arg(reply->readAll().toStdString().c_str())));
                                    return; // todo emit empty/unknown user here!
                                }
                                QByteArray arr = reply->readAll();
@@ -81,7 +83,7 @@ bool Bot::asyncGetMe()
                                ret.lastname = json.value("last_name").toString();
                                ret.username = json.value("username").toString();
                                if (ret.id == 0 || ret.firstname.isEmpty()) {
-                                   qCritical("%s", qPrintable("Got invalid user in " + QString(ENDPOINT_GET_ME)));
+                                   qCCritical(CTelBot, "%s", qPrintable("Got invalid user in " + QString(ENDPOINT_GET_ME)));
                                    emit getMe(User());
                                } else
                                emit getMe(ret);
@@ -100,12 +102,12 @@ bool Bot::asyncGetChat(const QVariant &chatId)
     _pendingReplies.insert(std::make_pair(reply,
                                           [this](QNetworkReply *reply) {
                                if (reply->error() != QNetworkReply::NoError) {
-                                   qCritical("%s", qPrintable(QString("[%1] %2").arg(reply->error()).arg(reply->errorString())));
+                                   qCCritical(CTelBot, "%s", qPrintable(QString("[%1] %2").arg(reply->error()).arg(reply->errorString())));
                                    return; // todo emit empty/unknown user here!
                                }
                                QByteArray arr = reply->readAll();
                                QJsonObject json = jsonObjectFromByteArray(arr);
-                               qDebug() << __PRETTY_FUNCTION__ << json;
+                               qCDebug(CTelBot) << __PRETTY_FUNCTION__ << json;
                                emit gotObject(json);
                            }
                                ));
@@ -397,7 +399,7 @@ bool Bot::_sendPayload(const ChatId &chatId, QFile *filePayload, ParameterList p
     bool openedFile = false;
     if (!filePayload->isOpen()) {
         if (!filePayload->open(QFile::ReadOnly)) {
-            qCritical("Could not open file %s [%s]", qPrintable(filePayload->fileName()), qPrintable(filePayload->errorString()));
+            qCCritical(CTelBot, "Could not open file %s [%s]", qPrintable(filePayload->fileName()), qPrintable(filePayload->errorString()));
             return false;
         }
         openedFile = true;
@@ -415,13 +417,13 @@ bool Bot::_sendPayload(const ChatId &chatId, QFile *filePayload, ParameterList p
     _pendingReplies.insert(std::make_pair(reply,
                                           [this](QNetworkReply *reply) {
                                if (reply->error() != QNetworkReply::NoError) {
-                                   qCritical("%s", qPrintable(QString("[%1] %2").arg(reply->error()).arg(reply->errorString())));
+                                   qCCritical(CTelBot, "%s", qPrintable(QString("[%1] %2").arg(reply->error()).arg(reply->errorString())));
                                    return; // todo emit signal here?
                                }
                                QByteArray arr = reply->readAll();
                                bool success = responseOk(arr);
                                if (!success)
-                               qWarning() << "_sendPayload no success" << reply;
+                               qCWarning(CTelBot) << "_sendPayload no success" << reply;
                                // emit getMe(ret); todo emit a signal here
                            }
                                ));
@@ -442,13 +444,13 @@ bool Bot::_sendPayload(const ChatId &chatId, const QString &textPayload, Paramet
     _pendingReplies.insert(std::make_pair(reply,
                                           [this](QNetworkReply *reply) {
                                if (reply->error() != QNetworkReply::NoError) {
-                                   qCritical("%s", qPrintable(QString("[%1] %2").arg(reply->error()).arg(reply->errorString())));
+                                   qCCritical(CTelBot, "%s", qPrintable(QString("[%1] %2 %3").arg(reply->error()).arg(reply->errorString()).arg(reply->readAll().toStdString().c_str())));
                                    return; // todo emit signal here?
                                }
                                QByteArray arr = reply->readAll();
                                bool success = responseOk(arr);
                                if (!success)
-                               qWarning() << "_sendPayload no success" << reply;
+                               qCWarning(CTelBot) << "_sendPayload no success" << reply;
                                // emit getMe(ret); todo emit a signal here
                            }
                                ));
@@ -461,12 +463,12 @@ QJsonObject Bot::jsonObjectFromByteArray(QByteArray json)
     QJsonObject obj = d.object();
 
     if (obj.isEmpty()) {
-        qCritical("Got an empty response object");
+        qCCritical(CTelBot, "Got an empty response object");
         return obj;
     }
 
     if (obj.value("ok").toBool() != true) {
-        qWarning("Result is not Ok");
+        qCWarning(CTelBot, "Result is not Ok");
         return obj;
     }
 
@@ -479,12 +481,12 @@ QJsonArray Bot::jsonArrayFromByteArray(QByteArray json)
     QJsonObject obj = d.object();
 
     if (obj.isEmpty()) {
-        qCritical("Got an empty response object");
+        qCCritical(CTelBot, "Got an empty response object");
         return QJsonArray();
     }
 
     if (obj.value("ok").toBool() != true) {
-        qWarning("Result is not Ok");
+        qCWarning(CTelBot, "Result is not Ok");
         return QJsonArray();
     }
 
@@ -523,7 +525,7 @@ void Bot::internalGetUpdates()
     params.insert("timeout", HttpParameter(m_pollingTimeout));
     auto reply = m_net->asyncRequest(ENDPOINT_GET_UPDATES, params, Networking::GET);
     if (!reply) {
-        qWarning() << __PRETTY_FUNCTION__ << "request failed";
+        qCWarning(CTelBot) << __PRETTY_FUNCTION__ << "request failed";
         if (m_internalUpdateTimer)
             m_internalUpdateTimer->start(m_updateInterval);
         return;
@@ -531,7 +533,7 @@ void Bot::internalGetUpdates()
     _pendingReplies.insert(std::make_pair(reply,
                                           [this](QNetworkReply *reply) {
                                if (reply->error() != QNetworkReply::NoError) {
-                                   qCritical("%s", qPrintable(QString("[%1] %2").arg(reply->error()).arg(reply->errorString())));
+                                   qCCritical(CTelBot, "%s", qPrintable(QString("[%1] %2 %3").arg(reply->error()).arg(reply->errorString()).arg(reply->readAll().toStdString().c_str())));
                                    if (m_internalUpdateTimer)
                                        m_internalUpdateTimer->start(m_updateInterval);
                                    return;
@@ -539,7 +541,7 @@ void Bot::internalGetUpdates()
                                QByteArray arr = reply->readAll();
                                QJsonArray json = this->jsonArrayFromByteArray(arr);
                                //if (json.count())
-                               // qDebug() << __PRETTY_FUNCTION__ << json;
+                               // qCDebug(CTelBot) << __PRETTY_FUNCTION__ << json;
                                foreach (QJsonValue value, json) {
                                    if (value.isObject()) {
                                        const QJsonObject &obj = value.toObject();
@@ -554,9 +556,9 @@ void Bot::internalGetUpdates()
                                            Update u(obj);
                                            emit message(id, u.message);
                                        } else
-                                        qDebug() << __PRETTY_FUNCTION__ << "ignored obj:" << obj;
+                                        qCDebug(CTelBot) << __PRETTY_FUNCTION__ << "ignored obj:" << obj;
                                    } else
-                                    qDebug() << __PRETTY_FUNCTION__ << "ignored:" << value;
+                                    qCDebug(CTelBot) << __PRETTY_FUNCTION__ << "ignored:" << value;
                                }
                                if (m_internalUpdateTimer)
                                    m_internalUpdateTimer->start(m_updateInterval);

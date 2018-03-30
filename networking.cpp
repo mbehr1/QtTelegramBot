@@ -6,7 +6,7 @@
 
 using namespace Telegram;
 
-Q_LOGGING_CATEGORY(Telegram::CTelNet, "Telegram.Net")
+Q_LOGGING_CATEGORY(Telegram::CTelNet, "telegram.net")
 
 Networking::Networking(const QString &token, QObject *parent) :
     QObject(parent),
